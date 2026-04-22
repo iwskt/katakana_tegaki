@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Katakana Trace Practice</title>
+  <style>
+    :root {
+      --bg: #f6f8fc;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d8dee9;
+      --accent: #2563eb;
+      --ok: #15803d;
+      --retry: #d97706;
+      --shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 40%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+        "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 760px;
+      margin: 0 auto;
+      display: grid;
+      gap: 14px;
+      padding-bottom: calc(18px + env(safe-area-inset-bottom));
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      line-height: 1.2;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .progress-wrap {
+      display: grid;
+      gap: 8px;
+    }
+
+    .progress-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: #e8edf5;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #60a5fa, var(--accent));
+      transition: width 0.25s ease;
+    }
+
+    .hero {
+      display: grid;
+      gap: 14px;
+    }
+
+    .char-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .char-box {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .char {
+      font-size: clamp(2.8rem, 10vw, 5rem);
+      line-height: 1;
+      font-weight: 700;
+    }
+
+    .roman {
+      color: var(--muted);
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+
+    button, select {
+      appearance: none;
+      border: 0;
+      border-radius: 14px;
+      font: inherit;
+    }
+
+    button {
+      background: #eef3ff;
+      color: var(--text);
+      min-height: 48px;
+      padding: 12px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.05s ease, opacity 0.2s ease, background 0.2s ease;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .ghost {
+      background: #f3f4f6;
+    }
+
+    .audio-btn {
+      min-width: 60px;
+      font-size: 1.15rem;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .canvas-card {
+      position: relative;
+      overflow: hidden;
+      padding: 10px;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 18px;
+      border: 2px solid var(--line);
+      background: #fbfcff;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .grid-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(to right, transparent calc(50% - 0.5px), #e5eaf3 calc(50% - 0.5px), #e5eaf3 calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+        linear-gradient(to bottom, transparent calc(50% - 0.5px), #e5eaf3 calc(50% - 0.5px), #e5eaf3 calc(50% + 0.5px), transparent calc(50% + 0.5px));
+      opacity: 0.9;
+    }
+
+    .guide-char {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      font-size: clamp(10rem, 40vw, 18rem);
+      line-height: 1;
+      font-weight: 700;
+      color: rgba(17, 24, 39, 0.12);
+      user-select: none;
+    }
+
+    canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .feedback {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 3;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: white;
+      box-shadow: var(--shadow);
+      transform: translateY(-6px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .feedback.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .feedback.ok { background: var(--ok); }
+    .feedback.retry { background: var(--retry); }
+
+    .meta {
+      display: grid;
+      gap: 10px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .stat {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+
+    .settings {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    select {
+      min-height: 48px;
+      padding: 0 14px;
+      background: #f8fafc;
+      border: 1px solid #dbe3ef;
+      color: var(--text);
+    }
+
+    .footer-note {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    @media (max-width: 520px) {
+      body { padding: 12px; }
+      .card { padding: 14px; }
+      .settings, .meta-grid { grid-template-columns: 1fr; }
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .char-row { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <div class="topbar">
+        <div>
+          <h1>Katakana Trace Practice</h1>
+          <div class="sub">Listen, trace, and get instant feedback.</div>
+        </div>
+        <button id="speakButton" class="audio-btn" aria-label="Play sound">🔊</button>
+      </div>
+    </section>
+
+    <section class="card progress-wrap">
+      <div class="progress-row">
+        <span id="progressText">1 / 46</span>
+        <span id="setText">Basic Katakana</span>
+      </div>
+      <div class="progress-bar" aria-hidden="true">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+    </section>
+
+    <section class="card hero">
+      <div class="char-row">
+        <div class="char-box">
+          <div id="currentChar" class="char">あ</div>
+          <div id="currentRoman" class="roman">a</div>
+        </div>
+        <button id="hintButton" class="ghost">Show path</button>
+      </div>
+
+      <div class="canvas-card">
+        <div id="feedback" class="feedback" aria-live="polite"></div>
+        <div id="canvasWrap" class="canvas-wrap">
+          <div class="grid-layer"></div>
+          <div id="guideChar" class="guide-char">あ</div>
+          <canvas id="drawCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button id="clearButton" class="ghost">Clear</button>
+        <button id="retryButton" class="ghost">Replay</button>
+        <button id="checkButton">Check</button>
+        <button id="nextButton" class="primary">Next</button>
+      </div>
+    </section>
+
+    <section class="card meta">
+      <div class="meta-grid">
+        <div class="stat">
+          <div class="stat-label">Last result</div>
+          <div id="lastResult" class="stat-value">—</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Best score</div>
+          <div id="bestScore" class="stat-value">0%</div>
+        </div>
+      </div>
+
+      <div class="settings">
+        <div class="field">
+          <label for="modeSelect">Feedback mode</label>
+          <select id="modeSelect">
+            <option value="easy">Easy</option>
+            <option value="normal">Normal</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="orderSelect">Order</label>
+          <select id="orderSelect">
+            <option value="sequential">Sequential</option>
+            <option value="random">Random</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="footer-note">
+        Tip: this activity is designed for beginners, so the judgment is intentionally gentle. “OK!” means your trace is close enough to the model.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const katakanaList = [
+  { char: "ア", roman: "a" }, { char: "イ", roman: "i" }, { char: "ウ", roman: "u" }, { char: "エ", roman: "e" }, { char: "オ", roman: "o" },
+  { char: "カ", roman: "ka" }, { char: "キ", roman: "ki" }, { char: "ク", roman: "ku" }, { char: "ケ", roman: "ke" }, { char: "コ", roman: "ko" },
+  { char: "サ", roman: "sa" }, { char: "シ", roman: "shi" }, { char: "ス", roman: "su" }, { char: "セ", roman: "se" }, { char: "ソ", roman: "so" },
+  { char: "タ", roman: "ta" }, { char: "チ", roman: "chi" }, { char: "ツ", roman: "tsu" }, { char: "テ", roman: "te" }, { char: "ト", roman: "to" },
+  { char: "ナ", roman: "na" }, { char: "ニ", roman: "ni" }, { char: "ヌ", roman: "nu" }, { char: "ネ", roman: "ne" }, { char: "ノ", roman: "no" },
+  { char: "ハ", roman: "ha" }, { char: "ヒ", roman: "hi" }, { char: "フ", roman: "fu" }, { char: "ヘ", roman: "he" }, { char: "ホ", roman: "ho" },
+  { char: "マ", roman: "ma" }, { char: "ミ", roman: "mi" }, { char: "ム", roman: "mu" }, { char: "メ", roman: "me" }, { char: "モ", roman: "mo" },
+  { char: "ヤ", roman: "ya" }, { char: "ユ", roman: "yu" }, { char: "ヨ", roman: "yo" },
+  { char: "ラ", roman: "ra" }, { char: "リ", roman: "ri" }, { char: "ル", roman: "ru" }, { char: "レ", roman: "re" }, { char: "ロ", roman: "ro" },
+  { char: "ワ", roman: "wa" }, { char: "ヲ", roman: "wo" }, { char: "ン", roman: "n" }
+];
+
+
+    const thresholds = {
+      easy: 0.34,
+      normal: 0.45
+    };
+
+    const canvasWrap = document.getElementById('canvasWrap');
+    const drawCanvas = document.getElementById('drawCanvas');
+    const drawCtx = drawCanvas.getContext('2d');
+
+    const currentCharEl = document.getElementById('currentChar');
+    const currentRomanEl = document.getElementById('currentRoman');
+    const guideCharEl = document.getElementById('guideChar');
+    const progressTextEl = document.getElementById('progressText');
+    const progressFillEl = document.getElementById('progressFill');
+    const setTextEl = document.getElementById('setText');
+    const feedbackEl = document.getElementById('feedback');
+    const lastResultEl = document.getElementById('lastResult');
+    const bestScoreEl = document.getElementById('bestScore');
+    const modeSelect = document.getElementById('modeSelect');
+    const orderSelect = document.getElementById('orderSelect');
+
+    const offGuideCanvas = document.createElement('canvas');
+    const offGuideCtx = offGuideCanvas.getContext('2d');
+    const offPathCanvas = document.createElement('canvas');
+    const offPathCtx = offPathCanvas.getContext('2d');
+
+    let displayOrder = [...katakanaList.keys()];
+    let currentDisplayIndex = 0;
+    let currentItem = katakanaList[displayOrder[currentDisplayIndex]];
+    let isDrawing = false;
+    let hasDrawn = false;
+    let strokes = [];
+    let currentStroke = [];
+    let lastX = 0;
+    let lastY = 0;
+    let bestScore = 0;
+    let voicesLoaded = false;
+
+    function shuffle(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function rebuildOrder(resetToStart = true) {
+      const base = [...katakanaList.keys()];
+      displayOrder = orderSelect.value === 'random' ? shuffle(base) : base;
+      if (resetToStart) currentDisplayIndex = 0;
+      currentItem = katakanaList[displayOrder[currentDisplayIndex]];
+      updateUI();
+      clearDrawing();
+    }
+
+    function resizeCanvas() {
+      const rect = canvasWrap.getBoundingClientRect();
+      const dpr = Math.max(window.devicePixelRatio || 1, 1);
+      const w = Math.round(rect.width * dpr);
+      const h = Math.round(rect.height * dpr);
+
+      [drawCanvas, offGuideCanvas, offPathCanvas].forEach((canvas) => {
+        canvas.width = w;
+        canvas.height = h;
+      });
+
+      drawCtx.setTransform(1, 0, 0, 1, 0, 0);
+      drawCtx.scale(dpr, dpr);
+      offGuideCtx.setTransform(1, 0, 0, 1, 0, 0);
+      offGuideCtx.scale(dpr, dpr);
+      offPathCtx.setTransform(1, 0, 0, 1, 0, 0);
+      offPathCtx.scale(dpr, dpr);
+
+      drawCtx.lineCap = 'round';
+      drawCtx.lineJoin = 'round';
+      drawCtx.strokeStyle = '#1d4ed8';
+      drawCtx.lineWidth = Math.max(10, rect.width * 0.03);
+
+      drawGuideMask();
+      redrawUserPath();
+    }
+
+    function getGuideFontSize(width, height) {
+      return Math.min(width, height) * 0.58;
+    }
+
+    function drawGuideMask() {
+      const rect = canvasWrap.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+      offGuideCtx.clearRect(0, 0, width, height);
+
+      const fontSize = getGuideFontSize(width, height);
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const tolerance = modeSelect.value === 'easy' ? fontSize * 0.12 : fontSize * 0.09;
+
+      offGuideCtx.save();
+      offGuideCtx.fillStyle = 'black';
+      offGuideCtx.strokeStyle = 'black';
+      offGuideCtx.lineWidth = tolerance * 2;
+      offGuideCtx.textAlign = 'center';
+      offGuideCtx.textBaseline = 'middle';
+      offGuideCtx.font = `700 ${fontSize}px "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif`;
+      offGuideCtx.strokeText(currentItem.char, centerX, centerY + fontSize * 0.02);
+      offGuideCtx.fillText(currentItem.char, centerX, centerY + fontSize * 0.02);
+      offGuideCtx.restore();
+    }
+
+    function redrawUserPath() {
+      const rect = canvasWrap.getBoundingClientRect();
+      drawCtx.clearRect(0, 0, rect.width, rect.height);
+
+      strokes.forEach(stroke => {
+        if (stroke.length < 2) return;
+
+        drawCtx.beginPath();
+        drawCtx.moveTo(stroke[0].x, stroke[0].y);
+
+        for (let i = 1; i < stroke.length; i++) {
+          drawCtx.lineTo(stroke[i].x, stroke[i].y);
+        }
+
+        drawCtx.stroke();
+      });
+    }
+
+    function clearDrawing() {
+      strokes = [];
+      currentStroke = [];
+      hasDrawn = false;
+
+      const rect = canvasWrap.getBoundingClientRect();
+      drawCtx.clearRect(0, 0, rect.width, rect.height);
+      feedbackEl.className = 'feedback';
+    }
+
+    function getPoint(event) {
+      const rect = canvasWrap.getBoundingClientRect();
+      const touch = event.touches ? event.touches[0] : event;
+      return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top,
+      };
+    }
+
+    function beginDraw(event) {
+      event.preventDefault();
+      const point = getPoint(event);
+
+      isDrawing = true;
+      hasDrawn = true;
+
+      currentStroke = [];
+      currentStroke.push(point);
+      strokes.push(currentStroke);
+
+      lastX = point.x;
+      lastY = point.y;
+    }
+
+    function moveDraw(event) {
+      if (!isDrawing) return;
+      event.preventDefault();
+
+      const point = getPoint(event);
+      const dx = point.x - lastX;
+      const dy = point.y - lastY;
+      const distance = Math.hypot(dx, dy);
+      const step = 3;
+
+      if (distance > 0) {
+        const steps = Math.max(1, Math.floor(distance / step));
+        for (let i = 1; i <= steps; i++) {
+          const x = lastX + (dx * i) / steps;
+          const y = lastY + (dy * i) / steps;
+          currentStroke.push({ x, y });
+        }
+      }
+
+      lastX = point.x;
+      lastY = point.y;
+
+      redrawUserPath();
+    }
+
+    function endDraw(event) {
+      if (!isDrawing) return;
+      event.preventDefault();
+      isDrawing = false;
+    }
+
+    function checkTrace() {
+      if (!hasDrawn || strokes.flat().length < 12) {
+        showFeedback('Try again!', false);
+        lastResultEl.textContent = 'Too short';
+        return;
+      }
+
+      const hits = strokes.flat().filter(({ x, y }) => {
+        const pixel = offGuideCtx.getImageData(Math.round(x), Math.round(y), 1, 1).data;
+        return pixel[3] > 0;
+      }).length;
+
+      const score = hits / strokes.flat().length;
+      bestScore = Math.max(bestScore, score);
+      bestScoreEl.textContent = `${Math.round(bestScore * 100)}%`;
+      lastResultEl.textContent = `${Math.round(score * 100)}%`;
+
+      if (score >= thresholds[modeSelect.value]) {
+        showFeedback('OK!', true);
+      } else {
+        showFeedback('Try again!', false);
+      }
+    }
+
+    function showFeedback(message, ok) {
+      feedbackEl.textContent = message;
+      feedbackEl.className = `feedback show ${ok ? 'ok' : 'retry'}`;
+      window.clearTimeout(showFeedback._timer);
+      showFeedback._timer = window.setTimeout(() => {
+        feedbackEl.className = 'feedback';
+      }, 1600);
+    }
+
+    function updateUI() {
+      currentItem = katakanaList[displayOrder[currentDisplayIndex]];
+      currentCharEl.textContent = currentItem.char;
+      currentRomanEl.textContent = currentItem.roman;
+      guideCharEl.textContent = currentItem.char;
+      progressTextEl.textContent = `${currentDisplayIndex + 1} / ${displayOrder.length}`;
+      progressFillEl.style.width = `${((currentDisplayIndex + 1) / displayOrder.length) * 100}%`;
+      setTextEl.textContent = 'Basic Katakana';
+      resizeCanvas();
+    }
+
+    function nextCharacter() {
+      currentDisplayIndex = (currentDisplayIndex + 1) % displayOrder.length;
+      updateUI();
+      clearDrawing();
+    }
+
+    function speakCurrent() {
+      const text = currentItem.char;
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ja-JP';
+      utterance.rate = 0.85;
+
+      const voices = window.speechSynthesis.getVoices();
+      const jaVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('ja'));
+      if (jaVoice) utterance.voice = jaVoice;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function showHint() {
+      guideCharEl.style.color = 'rgba(37, 99, 235, 0.2)';
+      window.clearTimeout(showHint._timer);
+      showHint._timer = window.setTimeout(() => {
+        guideCharEl.style.color = 'rgba(17, 24, 39, 0.12)';
+      }, 1200);
+    }
+
+    document.getElementById('speakButton').addEventListener('click', speakCurrent);
+    document.getElementById('hintButton').addEventListener('click', showHint);
+    document.getElementById('clearButton').addEventListener('click', clearDrawing);
+    document.getElementById('retryButton').addEventListener('click', () => {
+      clearDrawing();
+      speakCurrent();
+    });
+    document.getElementById('checkButton').addEventListener('click', checkTrace);
+    document.getElementById('nextButton').addEventListener('click', nextCharacter);
+
+    modeSelect.addEventListener('change', () => {
+      drawGuideMask();
+      clearDrawing();
+    });
+
+    orderSelect.addEventListener('change', () => rebuildOrder(true));
+
+    canvasWrap.addEventListener('pointerdown', beginDraw, { passive: false });
+    canvasWrap.addEventListener('pointermove', moveDraw, { passive: false });
+    window.addEventListener('pointerup', endDraw, { passive: false });
+    window.addEventListener('pointercancel', endDraw, { passive: false });
+
+    window.addEventListener('resize', resizeCanvas);
+
+    if ('speechSynthesis' in window) {
+      const loadVoices = () => {
+        if (voicesLoaded) return;
+        window.speechSynthesis.getVoices();
+        voicesLoaded = true;
+      };
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    rebuildOrder(true);
+  </script>
+</body>
+</html>
