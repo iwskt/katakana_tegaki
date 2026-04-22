@@ -604,19 +604,36 @@
       isDrawing = false;
     }
 
-    function checkTrace() {
+    
+    function isHit(x, y) {
+      const radius = 10;
+
+      for (let dx = -radius; dx <= radius; dx++) {
+        for (let dy = -radius; dy <= radius; dy++) {
+          const px = Math.round(x + dx);
+          const py = Math.round(y + dy);
+
+          const pixel = offGuideCtx.getImageData(px, py, 1, 1).data;
+          if (pixel[3] > 0) return true;
+        }
+      }
+      return false;
+    }
+
+function checkTrace() {
       if (!hasDrawn || strokes.flat().length < 12) {
         showFeedback('Try again!', false);
         lastResultEl.textContent = 'Too short';
         return;
       }
 
-      const hits = strokes.flat().filter(({ x, y }) => {
-        const pixel = offGuideCtx.getImageData(Math.round(x), Math.round(y), 1, 1).data;
-        return pixel[3] > 0;
+      const allPoints = strokes.flat();
+
+      const hits = allPoints.filter(({ x, y }) => {
+        return isHit(x, y);
       }).length;
 
-      const score = hits / strokes.flat().length;
+      const score = hits / allPoints.length;
       bestScore = Math.max(bestScore, score);
       bestScoreEl.textContent = `${Math.round(bestScore * 100)}%`;
       lastResultEl.textContent = `${Math.round(score * 100)}%`;
