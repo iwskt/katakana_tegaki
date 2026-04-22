@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Katakana Trace Practice</title>
+  <title>Hiragana Trace Practice</title>
   <style>
     :root {
       --bg: #f6f8fc;
@@ -318,7 +318,7 @@
     <section class="card">
       <div class="topbar">
         <div>
-          <h1>Katakana Trace Practice</h1>
+          <h1>Hiragana Trace Practice</h1>
           <div class="sub">Listen, trace, and get instant feedback.</div>
         </div>
         <button id="speakButton" class="audio-btn" aria-label="Play sound">🔊</button>
@@ -328,7 +328,7 @@
     <section class="card progress-wrap">
       <div class="progress-row">
         <span id="progressText">1 / 46</span>
-        <span id="setText">Basic Katakana</span>
+        <span id="setText">Basic Hiragana</span>
       </div>
       <div class="progress-bar" aria-hidden="true">
         <div id="progressFill" class="progress-fill"></div>
@@ -397,23 +397,22 @@
   </main>
 
   <script>
-    const katakanaList = [
-  { char: "ア", roman: "a" }, { char: "イ", roman: "i" }, { char: "ウ", roman: "u" }, { char: "エ", roman: "e" }, { char: "オ", roman: "o" },
-  { char: "カ", roman: "ka" }, { char: "キ", roman: "ki" }, { char: "ク", roman: "ku" }, { char: "ケ", roman: "ke" }, { char: "コ", roman: "ko" },
-  { char: "サ", roman: "sa" }, { char: "シ", roman: "shi" }, { char: "ス", roman: "su" }, { char: "セ", roman: "se" }, { char: "ソ", roman: "so" },
-  { char: "タ", roman: "ta" }, { char: "チ", roman: "chi" }, { char: "ツ", roman: "tsu" }, { char: "テ", roman: "te" }, { char: "ト", roman: "to" },
-  { char: "ナ", roman: "na" }, { char: "ニ", roman: "ni" }, { char: "ヌ", roman: "nu" }, { char: "ネ", roman: "ne" }, { char: "ノ", roman: "no" },
-  { char: "ハ", roman: "ha" }, { char: "ヒ", roman: "hi" }, { char: "フ", roman: "fu" }, { char: "ヘ", roman: "he" }, { char: "ホ", roman: "ho" },
-  { char: "マ", roman: "ma" }, { char: "ミ", roman: "mi" }, { char: "ム", roman: "mu" }, { char: "メ", roman: "me" }, { char: "モ", roman: "mo" },
-  { char: "ヤ", roman: "ya" }, { char: "ユ", roman: "yu" }, { char: "ヨ", roman: "yo" },
-  { char: "ラ", roman: "ra" }, { char: "リ", roman: "ri" }, { char: "ル", roman: "ru" }, { char: "レ", roman: "re" }, { char: "ロ", roman: "ro" },
-  { char: "ワ", roman: "wa" }, { char: "ヲ", roman: "wo" }, { char: "ン", roman: "n" }
-];
-
+    const hiraganaList = [
+      { char: "あ", roman: "a" }, { char: "い", roman: "i" }, { char: "う", roman: "u" }, { char: "え", roman: "e" }, { char: "お", roman: "o" },
+      { char: "か", roman: "ka" }, { char: "き", roman: "ki" }, { char: "く", roman: "ku" }, { char: "け", roman: "ke" }, { char: "こ", roman: "ko" },
+      { char: "さ", roman: "sa" }, { char: "し", roman: "shi" }, { char: "す", roman: "su" }, { char: "せ", roman: "se" }, { char: "そ", roman: "so" },
+      { char: "た", roman: "ta" }, { char: "ち", roman: "chi" }, { char: "つ", roman: "tsu" }, { char: "て", roman: "te" }, { char: "と", roman: "to" },
+      { char: "な", roman: "na" }, { char: "に", roman: "ni" }, { char: "ぬ", roman: "nu" }, { char: "ね", roman: "ne" }, { char: "の", roman: "no" },
+      { char: "は", roman: "ha" }, { char: "ひ", roman: "hi" }, { char: "ふ", roman: "fu" }, { char: "へ", roman: "he" }, { char: "ほ", roman: "ho" },
+      { char: "ま", roman: "ma" }, { char: "み", roman: "mi" }, { char: "む", roman: "mu" }, { char: "め", roman: "me" }, { char: "も", roman: "mo" },
+      { char: "や", roman: "ya" }, { char: "ゆ", roman: "yu" }, { char: "よ", roman: "yo" },
+      { char: "ら", roman: "ra" }, { char: "り", roman: "ri" }, { char: "る", roman: "ru" }, { char: "れ", roman: "re" }, { char: "ろ", roman: "ro" },
+      { char: "わ", roman: "wa" }, { char: "を", roman: "wo" }, { char: "ん", roman: "n" }
+    ];
 
     const thresholds = {
-      easy: 0.34,
-      normal: 0.45
+      easy: 0.25,
+      normal: 0.35
     };
 
     const canvasWrap = document.getElementById('canvasWrap');
@@ -437,9 +436,9 @@
     const offPathCanvas = document.createElement('canvas');
     const offPathCtx = offPathCanvas.getContext('2d');
 
-    let displayOrder = [...katakanaList.keys()];
+    let displayOrder = [...hiraganaList.keys()];
     let currentDisplayIndex = 0;
-    let currentItem = katakanaList[displayOrder[currentDisplayIndex]];
+    let currentItem = hiraganaList[displayOrder[currentDisplayIndex]];
     let isDrawing = false;
     let hasDrawn = false;
     let strokes = [];
@@ -459,10 +458,10 @@
     }
 
     function rebuildOrder(resetToStart = true) {
-      const base = [...katakanaList.keys()];
+      const base = [...hiraganaList.keys()];
       displayOrder = orderSelect.value === 'random' ? shuffle(base) : base;
       if (resetToStart) currentDisplayIndex = 0;
-      currentItem = katakanaList[displayOrder[currentDisplayIndex]];
+      currentItem = hiraganaList[displayOrder[currentDisplayIndex]];
       updateUI();
       clearDrawing();
     }
@@ -606,7 +605,7 @@
 
     
     function isHit(x, y) {
-      const radius = 10;
+      const radius = 24;
 
       for (let dx = -radius; dx <= radius; dx++) {
         for (let dy = -radius; dy <= radius; dy++) {
@@ -655,13 +654,13 @@ function checkTrace() {
     }
 
     function updateUI() {
-      currentItem = katakanaList[displayOrder[currentDisplayIndex]];
+      currentItem = hiraganaList[displayOrder[currentDisplayIndex]];
       currentCharEl.textContent = currentItem.char;
       currentRomanEl.textContent = currentItem.roman;
       guideCharEl.textContent = currentItem.char;
       progressTextEl.textContent = `${currentDisplayIndex + 1} / ${displayOrder.length}`;
       progressFillEl.style.width = `${((currentDisplayIndex + 1) / displayOrder.length) * 100}%`;
-      setTextEl.textContent = 'Basic Katakana';
+      setTextEl.textContent = 'Basic Hiragana';
       resizeCanvas();
     }
 
