@@ -311,7 +311,75 @@
       .toolbar { grid-template-columns: 1fr 1fr; }
       .char-row { align-items: flex-start; }
     }
-  </style>
+  
+/* Hide Best score */
+.stat:has(#bestScore) { display:none !important; }
+
+/* Hide Feedback mode */
+.field:has(#modeSelect) { display:none !important; }
+
+
+.meta {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  align-items: stretch;
+  gap: 12px;
+}
+
+.meta-grid {
+  grid-column: 1 / 2;
+}
+
+.settings {
+  grid-column: 2 / 3;
+  display: flex !important;
+  align-items: stretch;
+}
+
+.settings .field,
+.meta-grid .stat {
+  width: 100%;
+}
+
+
+.meta-grid {
+  grid-column: 1 / 2;
+}
+
+.settings {
+  grid-column: 2 / 3;
+  display: flex !important;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.settings .field {
+  width: 100%;
+}
+
+
+/* Equal width: Last result and Order */
+.meta {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px;
+}
+
+.meta-grid {
+  grid-column: 1 / 2;
+}
+
+.settings {
+  grid-column: 2 / 3;
+  display: block !important;
+}
+
+.meta-grid .stat,
+.settings .field {
+  width: 100%;
+}
+
+</style>
 </head>
 <body>
   <main class="app">
@@ -390,14 +458,14 @@
         </div>
       </div>
 
-      <div class="footer-note">
-        Tip: this activity is designed for beginners, so the judgment is intentionally gentle. “OK!” means your trace is close enough to the model.
-      </div>
+      
     </section>
   </main>
 
   <script>
-    const katakanaList = [
+    
+
+const katakanaList = [
   { char: "ア", roman: "a" }, { char: "イ", roman: "i" }, { char: "ウ", roman: "u" }, { char: "エ", roman: "e" }, { char: "オ", roman: "o" },
   { char: "カ", roman: "ka" }, { char: "キ", roman: "ki" }, { char: "ク", roman: "ku" }, { char: "ケ", roman: "ke" }, { char: "コ", roman: "ko" },
   { char: "サ", roman: "sa" }, { char: "シ", roman: "shi" }, { char: "ス", roman: "su" }, { char: "セ", roman: "se" }, { char: "ソ", roman: "so" },
@@ -409,6 +477,8 @@
   { char: "ラ", roman: "ra" }, { char: "リ", roman: "ri" }, { char: "ル", roman: "ru" }, { char: "レ", roman: "re" }, { char: "ロ", roman: "ro" },
   { char: "ワ", roman: "wa" }, { char: "ヲ", roman: "wo" }, { char: "ン", roman: "n" }
 ];
+
+
 
 
     const thresholds = {
@@ -605,56 +675,18 @@
     }
 
     
-    function isHit(x, y) {
-      const radius = 10;
+function checkTrace() {
+  const allPoints = strokes.flat();
 
-      for (let dx = -radius; dx <= radius; dx++) {
-        for (let dy = -radius; dy <= radius; dy++) {
-          const px = Math.round(x + dx);
-          const py = Math.round(y + dy);
+  if (!hasDrawn || allPoints.length < 20) {
+    showFeedback('Try again!', false);
+    lastResultEl.textContent = 'Too short';
+    return;
+  }
 
-          const pixel = offGuideCtx.getImageData(px, py, 1, 1).data;
-          if (pixel[3] > 0) return true;
-        }
-      }
-      return false;
-    }
-
-
-    function checkTrace() {
-      const allPoints = strokes.flat();
-
-      if (!hasDrawn || allPoints.length < 40) {
-        showFeedback('Try again!', false);
-        lastResultEl.textContent = 'Too short';
-        return;
-      }
-
-      const rect = canvasWrap.getBoundingClientRect();
-      const width = rect.width;
-      const height = rect.height;
-
-      const guideData = offGuideCtx.getImageData(0, 0, width, height).data;
-      let guideCount = 0;
-      for (let i = 3; i < guideData.length; i += 4) {
-        if (guideData[i] > 0) guideCount++;
-      }
-
-      const hits = allPoints.filter(({ x, y }) => isHit(x, y)).length;
-
-      const accuracy = hits / allPoints.length;
-      const coverage = hits / guideCount;
-
-      bestScore = Math.max(bestScore, accuracy);
-      bestScoreEl.textContent = `${Math.round(bestScore * 100)}%`;
-      lastResultEl.textContent = `${Math.round(accuracy * 100)}%`;
-
-      if (accuracy > 0.5 && coverage > 0.15) {
-        showFeedback('OK!', true);
-      } else {
-        showFeedback('Try again!', false);
-      }
-    }
+  showFeedback('OK!', true);
+  lastResultEl.textContent = 'Good';
+}
 
 
     function showFeedback(message, ok) {
